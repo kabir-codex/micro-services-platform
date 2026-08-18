@@ -1,0 +1,8 @@
+# Self-signed issuer for local/dev use. Swap for a Let's Encrypt ACME issuer
+# (DNS-01 or HTTP-01) if this is ever pointed at a real domain.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}

@@ -1,0 +1,50 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/kabir-devs/microservices-platform/backend-node
+  tag: "248b147"
+  pullPolicy: IfNotPresent
+
+service:
+  port: 4000
+
+ingress:
+  enabled: true
+  host: platform.local
+  path: /api/orders
+  tlsSecretName: platform-tls
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+
+env:
+  - name: PORT
+    value: "4000"
+  - name: DATABASE_URL
+    valueFrom:
+      secretKeyRef:
+        name: postgres-credentials
+        key: connection-string
+  - name: REDIS_URL
+    value: "redis://redis.platform.svc.cluster.local:6379"
+
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop: ["ALL"]

@@ -1,0 +1,94 @@
+{
+  "title": "Platform Overview",
+  "uid": "platform-overview",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Request rate (orders-api)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_request_duration_seconds_count{job=\"platform-services\"}[5m])) by (route)"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "p95 latency (orders-api)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"platform-services\"}[5m])) by (le, route))"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Pod CPU usage (platform namespace)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"platform\"}[5m])) by (pod)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Pod memory usage (platform namespace)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"platform\"}) by (pod)"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "HPA current vs desired replicas",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "targets": [
+        {
+          "expr": "kube_horizontalpodautoscaler_status_current_replicas{namespace=\"platform\"}",
+          "legendFormat": "current {{horizontalpodautoscaler}}"
+        },
+        {
+          "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"platform\"}",
+          "legendFormat": "desired {{horizontalpodautoscaler}}"
+        }
+      ]
+    }
+  ]
+}

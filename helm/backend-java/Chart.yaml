@@ -1,0 +1,6 @@
+apiVersion: v2
+name: backend-java
+description: Catalog API (Spring Boot) microservice
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

@@ -1,0 +1,24 @@
+# The single ArgoCD Application you register by hand. Everything else
+# (frontend, backend-node, backend-java, infra addons) is defined as an
+# Application manifest under argocd/apps/ and gets picked up automatically —
+# this is the "app of apps" GitOps pattern.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-app-of-apps
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kabir-devs/microservices-platform.git
+    targetRevision: main
+    path: argocd/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

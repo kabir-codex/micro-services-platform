@@ -1,0 +1,24 @@
+# loki-stack bundles Loki + Promtail (log shipping agent) together, which
+# is the fastest path to cluster-wide log aggregation for a demo cluster.
+loki:
+  persistence:
+    enabled: true
+    size: 5Gi
+  config:
+    limits_config:
+      retention_period: 72h
+
+promtail:
+  enabled: true
+  config:
+    snippets:
+      pipelineStages:
+        - cri: {}
+
+grafana:
+  # Grafana itself is installed by kube-prometheus-stack; this just makes
+  # sure Loki is registered there as a datasource.
+  enabled: false
+
+# After install, add Loki as a Grafana datasource:
+#   URL: http://loki:3100
