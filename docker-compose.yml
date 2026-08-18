@@ -1,0 +1,80 @@
+version: "3.9"
+
+# Fast inner-loop dev environment (no Kubernetes needed).
+# For the full platform (Helm, ArgoCD, monitoring) see infra/terraform + scripts/.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: platform
+      POSTGRES_PASSWORD: platform_dev_password
+      POSTGRES_DB: platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platform"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend-node:
+    build: ./backend-node
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      DATABASE_URL: postgres://platform:platform_dev_password@postgres:5432/platform
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  backend-java:
+    build: ./backend-java
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/platform
+      SPRING_DATASOURCE_USERNAME: platform
+      SPRING_DATASOURCE_PASSWORD: platform_dev_password
+      SPRING_REDIS_HOST: redis
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    environment:
+      VITE_ORDERS_API_URL: http://localhost:4000
+      VITE_CATALOG_API_URL: http://localhost:8080
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend-node
+      - backend-java
+
+volumes:
+  pgdata:
