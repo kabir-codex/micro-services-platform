@@ -1,0 +1,10 @@
+node_modules/
+dist/
+target/
+*.log
+.env
+k8s/postgres/secret.yaml
+infra/terraform/**/kubeconfig-*.yaml
+infra/terraform/**/.terraform/
+infra/terraform/**/*.tfstate*
+.DS_Store
