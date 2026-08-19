@@ -18,7 +18,7 @@ router.get("/orders", async (_req, res) => {
   }
 });
 
-router.post("/orders", express.json(), async (req, res) => {
+router.post("/orders", async (req, res) => {
   const { item, quantity } = req.body || {};
   if (typeof item !== "string" || !item.trim()) {
     return res.status(400).json({ error: "item must be a non-empty string" });

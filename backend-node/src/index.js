@@ -5,6 +5,7 @@ const ordersRouter = require("./routes/orders");
 const { register, metricsMiddleware } = require("./metrics");
 
 const app = express();
+app.use(express.json());
 const port = Number(process.env.PORT) || 4000;
 
 const redisClient = createClient({ url: process.env.REDIS_URL || "redis://localhost:6379" });
