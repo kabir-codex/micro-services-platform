@@ -11,7 +11,14 @@ const httpRequestDuration = new client.Histogram({
 });
 register.registerMetric(httpRequestDuration);
 
+// Only instrument application routes; the /metrics endpoint itself and any
+// non-route paths would pollute the histogram with scraping noise.
+const EXCLUDED_PATHS = new Set(["/metrics"]);
+
 function metricsMiddleware(req, res, next) {
+  if (EXCLUDED_PATHS.has(req.path)) {
+    return next();
+  }
   const end = httpRequestDuration.startTimer();
   res.on("finish", () => {
     end({ method: req.method, route: req.route?.path || req.path, status_code: res.statusCode });
