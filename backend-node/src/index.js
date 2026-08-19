@@ -5,7 +5,7 @@ const ordersRouter = require("./routes/orders");
 const { register, metricsMiddleware } = require("./metrics");
 
 const app = express();
-const port = process.env.PORT || 4000;
+const port = Number(process.env.PORT) || 4000;
 
 const redisClient = createClient({ url: process.env.REDIS_URL || "redis://localhost:6379" });
 redisClient.on("error", (err) => console.error("Redis client error", err));
@@ -24,9 +24,16 @@ app.get("/metrics", async (_req, res) => {
 const server = app.listen(port, () => console.log(`orders-api listening on :${port}`));
 
 // Graceful shutdown so rolling updates don't drop in-flight requests.
+// If in-flight requests refuse to drain, force-exit after 10s so the
+// orchestrator doesn't have to SIGKILL us.
+const SHUTDOWN_TIMEOUT_MS = 10_000;
 process.on("SIGTERM", () => {
   console.log("SIGTERM received, shutting down gracefully");
   server.close(() => {
     redisClient.quit().finally(() => process.exit(0));
   });
+  setTimeout(() => {
+    console.error("shutdown drain timed out, forcing exit");
+    process.exit(1);
+  }, SHUTDOWN_TIMEOUT_MS).unref();
 });
