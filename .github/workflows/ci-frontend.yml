@@ -61,7 +61,22 @@ jobs:
       - name: Bump image tag in Helm values (GitOps trigger)
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
-          sed -i "s/tag: .*/tag: \"${SHORT_SHA}\"/" helm/frontend/values.yaml
+          python3 - <<'PY' "$SHORT_SHA"
+import re, pathlib, sys
+values = pathlib.Path("helm/frontend/values.yaml")
+lines = values.read_text().splitlines(True)
+new_tag = sys.argv[1]
+in_image = False
+for i, ln in enumerate(lines):
+    if re.match(r"^image:\s*$", ln):
+        in_image = True
+    elif in_image and ln.strip() and not ln.startswith(" "):
+        in_image = False
+    if in_image and re.match(r"^\s+tag:", ln):
+        lines[i] = re.sub(r"^(\s*tag:).*$", lambda m: m.group(1) + ' "' + new_tag + '"', ln)
+values.write_text("".join(lines))
+print(f"bumped image tag to {new_tag}")
+PY
           git config user.name "kabir-devs"
           git config user.email "kabir-devs@users.noreply.github.com"
           git commit -am "ci: bump frontend image to ${SHORT_SHA}" || echo "no changes"
