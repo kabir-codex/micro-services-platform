@@ -73,6 +73,26 @@ kubectl -n argocd port-forward svc/argocd-server 8080:443
 Open `https://localhost:8080` for ArgoCD, and `https://platform.local`
 (after adding it to `/etc/hosts` → `127.0.0.1`) for the app itself.
 
+In Kubernetes the frontend discovers its backends through the ingress
+(`https://platform.local/api/orders` → backend-node, `/api/catalog` →
+backend-java); the Docker Compose path uses the `VITE_*` build-time env vars
+below instead.
+
+## Frontend → backend URLs
+
+The Vite frontend resolves its APIs at build time. Locally (no cluster), pass
+`VITE_ORDERS_API_URL` and `VITE_CATALOG_API_URL` so the dashboard can reach the
+dev-served backends:
+
+```bash
+# in docker-compose.yml under frontend build args / env
+VITE_ORDERS_API_URL=http://localhost:4000
+VITE_CATALOG_API_URL=http://localhost:8080
+```
+
+Without these, the dashboard falls back to the same `localhost` ports, which is
+what the compose file already sets.
+
 ## What this demonstrates
 
 - **Infrastructure as Code** — Terraform provisions the cluster and every
