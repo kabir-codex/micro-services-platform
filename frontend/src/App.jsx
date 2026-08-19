@@ -7,16 +7,18 @@ function useHealth(url) {
   const [status, setStatus] = useState("checking...");
 
   useEffect(() => {
-    let cancelled = false;
-    fetch(`${url}/health`)
-      .then((r) => (r.ok ? "healthy" : `unhealthy (${r.status})`))
-      .catch(() => "unreachable")
-      .then((s) => {
-        if (!cancelled) setStatus(s);
+    const controller = new AbortController();
+    fetch(`${url}/health`, { signal: controller.signal })
+      .then((r) => {
+        if (!controller.signal.aborted) {
+          setStatus(r.ok ? "healthy" : `unhealthy (${r.status})`);
+        }
+      })
+      .catch((err) => {
+        if (err.name === "AbortError") return;
+        if (!controller.signal.aborted) setStatus("unreachable");
       });
-    return () => {
-      cancelled = true;
-    };
+    return () => controller.abort();
   }, [url]);
 
   return status;
