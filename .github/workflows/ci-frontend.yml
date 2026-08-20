@@ -57,6 +57,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            VITE_ORDERS_API_URL=${{ vars.VITE_ORDERS_API_URL }}
+            VITE_CATALOG_API_URL=${{ vars.VITE_CATALOG_API_URL }}
 
       - name: Bump image tag in Helm values (GitOps trigger)
         run: |
