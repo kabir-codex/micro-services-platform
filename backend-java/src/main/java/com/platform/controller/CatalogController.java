@@ -2,6 +2,7 @@ package com.platform.controller;
 
 import com.platform.model.Product;
 import com.platform.repository.ProductRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,7 @@ public class CatalogController {
     }
 
     @PostMapping("/products")
-    public Product createProduct(@RequestBody Product product) {
+    public Product createProduct(@Valid @RequestBody Product product) {
         return repository.save(product);
     }
 }

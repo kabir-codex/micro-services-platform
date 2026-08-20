@@ -70,4 +70,35 @@ class CatalogControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Keyboard"));
     }
+
+    @Test
+    void createProductRejectsBlankName() throws Exception {
+        mockMvc.perform(post("/catalog/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "   ",
+                                  "category": "Peripherals",
+                                  "price": 5.0
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+
+        // The invalid payload must never reach the repository.
+        org.mockito.Mockito.verifyNoInteractions(repository);
+    }
+
+    @Test
+    void createProductRejectsNegativePrice() throws Exception {
+        mockMvc.perform(post("/catalog/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Mouse",
+                                  "category": "Peripherals",
+                                  "price": -1.0
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+    }
 }
