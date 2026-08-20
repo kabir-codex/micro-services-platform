@@ -30,6 +30,15 @@ function request(port, method, path, body) {
   });
 }
 
+test("GET / exposes service metadata", async () => {
+  await withServer(async (port) => {
+    const res = await request(port, "GET", "/");
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.service, "orders-api");
+    assert.ok(res.body.endpoints.includes("/orders"));
+  });
+});
+
 test("GET /orders/:id returns an order from the in-memory fallback", async () => {
   await withServer(async (port) => {
     const res = await request(port, "GET", "/orders/1");
