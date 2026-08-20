@@ -1,10 +1,12 @@
 const express = require("express");
+const compression = require("compression");
 const { createClient } = require("redis");
 const healthRouter = require("./routes/health");
 const ordersRouter = require("./routes/orders");
 const { register, metricsMiddleware } = require("./metrics");
 
 const app = express();
+app.use(compression());
 app.use(express.json());
 const port = Number(process.env.PORT) || 4000;
 
