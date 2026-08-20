@@ -65,11 +65,12 @@ services:
         condition: service_healthy
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_ORDERS_API_URL: http://localhost:4000
+        VITE_CATALOG_API_URL: http://localhost:8080
     restart: unless-stopped
-    environment:
-      VITE_ORDERS_API_URL: http://localhost:4000
-      VITE_CATALOG_API_URL: http://localhost:8080
     ports:
       - "3000:80"
     depends_on:
