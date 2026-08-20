@@ -8,6 +8,14 @@ let memoryOrders = [
   { id: 2, item: "Mechanical Keyboard", quantity: 1, status: "processing" },
 ];
 
+// Simple landing route so the API responds somewhere friendly at the root.
+router.get("/", (_req, res) => {
+  res.json({
+    service: "orders-api",
+    endpoints: ["/health", "/ready", "/orders", "/orders/:id", "/metrics"],
+  });
+});
+
 router.get("/orders", async (_req, res) => {
   try {
     const result = await query("SELECT id, item, quantity, status FROM orders ORDER BY id");
