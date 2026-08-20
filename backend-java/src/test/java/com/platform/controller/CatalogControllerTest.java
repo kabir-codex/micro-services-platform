@@ -40,6 +40,23 @@ class CatalogControllerTest {
     }
 
     @Test
+    void getProductReturnsItWhenFound() throws Exception {
+        given(repository.findById(1L)).willReturn(java.util.Optional.of(new Product("Monitor", "Displays", 249.00)));
+
+        mockMvc.perform(get("/catalog/products/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Monitor"));
+    }
+
+    @Test
+    void getProductReturns404WhenMissing() throws Exception {
+        given(repository.findById(99L)).willReturn(java.util.Optional.empty());
+
+        mockMvc.perform(get("/catalog/products/99"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void createProductPersists() throws Exception {
         Product input = new Product("Keyboard", "Peripherals", 89.00);
 
