@@ -11,6 +11,13 @@ const httpRequestDuration = new client.Histogram({
 });
 register.registerMetric(httpRequestDuration);
 
+const httpRequestsTotal = new client.Counter({
+  name: "http_requests_total",
+  help: "Total number of HTTP requests handled",
+  labelNames: ["method", "route", "status_code"],
+});
+register.registerMetric(httpRequestsTotal);
+
 // Only instrument application routes; the /metrics endpoint itself and any
 // non-route paths would pollute the histogram with scraping noise.
 const EXCLUDED_PATHS = new Set(["/metrics"]);
@@ -21,7 +28,9 @@ function metricsMiddleware(req, res, next) {
   }
   const end = httpRequestDuration.startTimer();
   res.on("finish", () => {
-    end({ method: req.method, route: req.route?.path || req.path, status_code: res.statusCode });
+    const labels = { method: req.method, route: req.route?.path || req.path, status_code: res.statusCode };
+    end(labels);
+    httpRequestsTotal.inc(labels);
   });
   next();
 }
