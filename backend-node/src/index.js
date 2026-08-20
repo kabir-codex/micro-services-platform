@@ -24,7 +24,9 @@ app.get("/metrics", async (_req, res) => {
   res.end(await register.metrics());
 });
 
-const server = app.listen(port, () => console.log(`orders-api listening on :${port}`));
+const HOST = process.env.HOST || "0.0.0.0";
+
+const server = app.listen(port, HOST, () => console.log(`orders-api listening on ${HOST}:${port}`));
 
 // Graceful shutdown so rolling updates don't drop in-flight requests.
 // If in-flight requests refuse to drain, force-exit after 10s so the
