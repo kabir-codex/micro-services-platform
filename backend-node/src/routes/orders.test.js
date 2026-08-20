@@ -30,6 +30,28 @@ function request(port, method, path, body) {
   });
 }
 
+test("GET /orders/:id returns an order from the in-memory fallback", async () => {
+  await withServer(async (port) => {
+    const res = await request(port, "GET", "/orders/1");
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.item, "Wireless Mouse");
+  });
+});
+
+test("GET /orders/:id returns 404 for an unknown id", async () => {
+  await withServer(async (port) => {
+    const res = await request(port, "GET", "/orders/999");
+    assert.strictEqual(res.status, 404);
+  });
+});
+
+test("GET /orders/:id rejects a non-numeric id", async () => {
+  await withServer(async (port) => {
+    const res = await request(port, "GET", "/orders/abc");
+    assert.strictEqual(res.status, 400);
+  });
+});
+
 test("GET /orders returns a list", async () => {
   await withServer(async (port) => {
     const res = await request(port, "GET", "/orders");
