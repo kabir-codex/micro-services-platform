@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import App from "./App";
 
 beforeEach(() => {
@@ -38,5 +38,38 @@ describe("App", () => {
     render(<App />);
     const unreachable = await screen.findAllByText(/unreachable/);
     expect(unreachable).toHaveLength(2);
+  });
+
+  it("re-checks health on the polling interval so recovery is reflected", async () => {
+    // Fake timers only here, and no waitFor-style queries: their internal
+    // polling deadlocks when timers don't advance.
+    vi.useFakeTimers();
+    try {
+      const fetchMock = vi.fn()
+        .mockRejectedValueOnce(new Error("boom")) // orders, initial check
+        .mockRejectedValueOnce(new Error("boom")) // catalog, initial check
+        .mockResolvedValue({ ok: true, status: 200 });
+      vi.stubGlobal("fetch", fetchMock);
+
+      render(<App />);
+      await act(async () => {}); // flush the initial checks
+      const items = screen.getAllByRole("listitem");
+      expect(items.map((li) => li.textContent)).toEqual([
+        expect.stringMatching(/unreachable/),
+        expect.stringMatching(/unreachable/),
+      ]);
+
+      // Advance past the 30s poll; both services must flip to healthy.
+      await act(async () => {
+        vi.advanceTimersByTime(31_000);
+      });
+      expect(items.map((li) => li.textContent)).toEqual([
+        expect.stringMatching(/healthy/),
+        expect.stringMatching(/healthy/),
+      ]);
+      expect(fetchMock).toHaveBeenCalledTimes(4); // 2 services x 2 checks
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
