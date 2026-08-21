@@ -16,13 +16,22 @@ router.get("/", (_req, res) => {
   });
 });
 
-router.get("/orders", async (_req, res) => {
+router.get("/orders", async (req, res) => {
+  // Optional ?status= filter; validated so it can't smuggle SQL.
+  const { status } = req.query;
+  if (status !== undefined && !["processing", "shipped", "delivered", "cancelled"].includes(status)) {
+    return res.status(400).json({ error: "unknown status filter" });
+  }
   try {
-    const result = await query("SELECT id, item, quantity, status FROM orders ORDER BY id");
+    const result = await query(
+      "SELECT id, item, quantity, status FROM orders WHERE ($1::text IS NULL OR status = $1) ORDER BY id",
+      [status ?? null]
+    );
     res.json(result.rows);
   } catch {
     // Table may not exist yet in a fresh demo environment.
-    res.json(memoryOrders);
+    const rows = status ? memoryOrders.filter((o) => o.status === status) : memoryOrders;
+    res.json(rows);
   }
 });
 

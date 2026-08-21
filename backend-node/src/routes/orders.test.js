@@ -69,6 +69,25 @@ test("GET /orders returns a list", async () => {
   });
 });
 
+test("GET /orders?status= filters the in-memory fallback by status", async () => {
+  await withServer(async (port) => {
+    const res = await request(port, "GET", "/orders?status=shipped");
+    assert.strictEqual(res.status, 200);
+    assert.ok(res.body.length > 0);
+    for (const order of res.body) {
+      assert.strictEqual(order.status, "shipped");
+    }
+  });
+});
+
+test("GET /orders rejects an unknown status filter", async () => {
+  await withServer(async (port) => {
+    const res = await request(port, "GET", "/orders?status=bogus");
+    assert.strictEqual(res.status, 400);
+    assert.match(res.body.error, /unknown status/);
+  });
+});
+
 test("POST /orders rejects a missing quantity", async () => {
   await withServer(async (port) => {
     const res = await request(port, "POST", "/orders", { item: "Headphones" });
