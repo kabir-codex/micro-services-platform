@@ -44,10 +44,12 @@ export default function App() {
       <p>Frontend is up. Backend service health:</p>
       <ul>
         <li>
-          <strong>Orders API</strong> (Node/Express): {ordersStatus}
+          <strong>Orders API</strong> (Node/Express): {ordersStatus}{" "}
+          <code style={{ fontSize: "0.8em", color: "#666" }}>{ORDERS_API}</code>
         </li>
         <li>
-          <strong>Catalog API</strong> (Spring Boot): {catalogStatus}
+          <strong>Catalog API</strong> (Spring Boot): {catalogStatus}{" "}
+          <code style={{ fontSize: "0.8em", color: "#666" }}>{CATALOG_API}</code>
         </li>
       </ul>
     </main>

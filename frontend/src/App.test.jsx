@@ -17,6 +17,12 @@ describe("App", () => {
     expect(screen.getByText("Catalog API")).toBeInTheDocument();
   });
 
+  it("shows the resolved API base URLs so build-time env is debuggable", () => {
+    render(<App />);
+    expect(screen.getAllByText("http://localhost:4000").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("http://localhost:8080").length).toBeGreaterThan(0);
+  });
+
   it("shows unhealthy with the status code when a service replies with an error", async () => {
     vi.stubGlobal(
       "fetch",
