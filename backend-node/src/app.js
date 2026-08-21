@@ -10,6 +10,14 @@ const app = express();
 app.use(compression());
 app.use(express.json());
 
+// Malformed JSON should be a 400 the client can parse, not an HTML stack page.
+app.use((err, _req, res, next) => {
+  if (err.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "malformed JSON body" });
+  }
+  next(err);
+});
+
 app.use(metricsMiddleware);
 app.use(healthRouter);
 app.use(ordersRouter);
