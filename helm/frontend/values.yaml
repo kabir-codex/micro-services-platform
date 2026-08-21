@@ -27,6 +27,10 @@ autoscaling:
   maxReplicas: 5
   targetCPUUtilizationPercentage: 70
 
+networkPolicy:
+  # Restrict ingress to traffic from the ingress-nginx namespace.
+  enabled: true
+
 podSecurityContext:
   runAsNonRoot: true
   fsGroup: 1000
