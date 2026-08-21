@@ -56,3 +56,7 @@ securityContext:
   readOnlyRootFilesystem: false
   capabilities:
     drop: ["ALL"]
+
+networkPolicy:
+  # Restrict ingress to traffic from the ingress-nginx namespace.
+  enabled: true
