@@ -1,9 +1,9 @@
-FROM node:20-alpine AS base
+FROM node:26-alpine AS base
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-FROM node:20-alpine
+FROM node:26-alpine
 WORKDIR /app
 RUN addgroup -S app && adduser -S app -G app
 COPY --from=base /app/node_modules ./node_modules
