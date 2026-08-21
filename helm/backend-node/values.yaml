@@ -28,6 +28,10 @@ autoscaling:
   maxReplicas: 8
   targetCPUUtilizationPercentage: 70
 
+networkPolicy:
+  # Restrict ingress to traffic from the ingress-nginx namespace.
+  enabled: true
+
 env:
   - name: PORT
     value: "4000"
