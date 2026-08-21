@@ -1,0 +1,13 @@
+# Default owner for everything
+* @kabir-codex
+
+# Service-specific review routing
+/backend-node/ @kabir-codex
+/backend-java/ @kabir-codex
+/frontend/ @kabir-codex
+
+# Infra and delivery changes deserve a second look: they deploy on merge.
+/helm/ @kabir-codex
+/k8s/ @kabir-codex
+/argocd/ @kabir-codex
+/.github/workflows/ @kabir-codex
