@@ -1,7 +1,7 @@
 # ---- build stage ----
 # The backend URLs are inlined at build time via the VITE_* args so the
 # dashboard reaches the right APIs from the cluster.
-FROM node:20-alpine AS build
+FROM node:26-alpine AS build
 ARG VITE_ORDERS_API_URL=http://localhost:4000
 ARG VITE_CATALOG_API_URL=http://localhost:8080
 ENV VITE_ORDERS_API_URL=$VITE_ORDERS_API_URL \
