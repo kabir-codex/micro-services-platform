@@ -20,7 +20,10 @@ public class CatalogController {
     private ProductRepository repository;
 
     @GetMapping("/products")
-    public List<Product> listProducts() {
+    public List<Product> listProducts(@RequestParam(required = false) String category) {
+        if (category != null && !category.isBlank()) {
+            return repository.findByCategoryIgnoreCase(category);
+        }
         return repository.findAll();
     }
 

@@ -40,6 +40,17 @@ class CatalogControllerTest {
     }
 
     @Test
+    void listProductsFiltersByCategoryIgnoringCase() throws Exception {
+        given(repository.findByCategoryIgnoreCase("peripherals"))
+                .willReturn(List.of(new Product("Mouse", "Peripherals", 19.99)));
+
+        mockMvc.perform(get("/catalog/products").param("category", "peripherals"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].category").value("Peripherals"));
+    }
+
+    @Test
     void getProductReturnsItWhenFound() throws Exception {
         given(repository.findById(1L)).willReturn(java.util.Optional.of(new Product("Monitor", "Displays", 249.00)));
 
