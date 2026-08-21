@@ -12,7 +12,15 @@ let memoryOrders = [
 router.get("/", (_req, res) => {
   res.json({
     service: "orders-api",
-    endpoints: ["/health", "/ready", "/orders", "/orders/:id", "/metrics"],
+    endpoints: [
+      "/health",
+      "/ready",
+      "GET /orders[?status=]",
+      "GET /orders/:id",
+      "POST /orders",
+      "DELETE /orders/:id",
+      "/metrics",
+    ],
   });
 });
 

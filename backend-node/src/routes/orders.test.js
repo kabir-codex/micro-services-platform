@@ -35,7 +35,8 @@ test("GET / exposes service metadata", async () => {
     const res = await request(port, "GET", "/");
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.service, "orders-api");
-    assert.ok(res.body.endpoints.includes("/orders"));
+    assert.ok(res.body.endpoints.some((e) => e.includes("/orders")));
+    assert.ok(res.body.endpoints.some((e) => e.startsWith("DELETE")));
   });
 });
 
