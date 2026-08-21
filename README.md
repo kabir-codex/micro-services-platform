@@ -34,6 +34,34 @@ Spring Boot owns a "catalog" API. Both talk to the same Postgres instance
 to demonstrate that the platform (CI, Helm, ArgoCD, monitoring) is
 language-agnostic.
 
+## API surface
+
+**Orders API** (`backend-node`, port 4000)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/` | Service metadata + endpoint list |
+| GET | `/health` | Liveness (no dependency checks) |
+| GET | `/ready` | Readiness — 503 unless Postgres + Redis respond |
+| GET | `/orders` | List orders; optional `?status=` filter |
+| GET | `/orders/:id` | Fetch one order; 404 when missing |
+| POST | `/orders` | Create; validates item + quantity |
+| DELETE | `/orders/:id` | Remove; 204 on success |
+| GET | `/metrics` | Prometheus scrape (never self-instrumented) |
+
+**Catalog API** (`backend-java`, port 8080)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/health` | Plain health check |
+| GET | `/actuator/health` | Spring Boot health (used by probes) |
+| GET | `/catalog/products` | List products; optional `?category=` filter |
+| GET | `/catalog/products/{id}` | Fetch one product; 404 when missing |
+| POST | `/catalog/products` | Create; bean-validated, field-level error JSON |
+| PUT | `/catalog/products/{id}` | Update; bean-validated |
+| DELETE | `/catalog/products/{id}` | Remove; 204 on success |
+| GET | `/actuator/prometheus` | Prometheus scrape |
+
 ## Repo layout
 
 | Path | What it is |
