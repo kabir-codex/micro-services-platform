@@ -41,3 +41,22 @@ test("malformed JSON bodies get a JSON 400, not an HTML parse-error page", async
   assert.match(res.contentType, /application\/json/);
   assert.strictEqual(res.body.error, "malformed JSON body");
 });
+
+test("every response carries the baseline security headers", async () => {
+  const server = app.listen(0);
+  const { port } = server.address();
+  const headers = await new Promise((resolve, reject) => {
+    http.get({ hostname: "127.0.0.1", port, path: "/health" }, (res) => {
+      res.resume();
+      res.on("end", () => {
+        server.close();
+        resolve(res.headers);
+      });
+    }).on("error", (err) => {
+      server.close();
+      reject(err);
+    });
+  });
+  assert.strictEqual(headers["x-content-type-options"], "nosniff");
+  assert.strictEqual(headers["cache-control"], "no-store");
+});

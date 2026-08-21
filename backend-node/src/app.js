@@ -10,6 +10,14 @@ const app = express();
 app.use(compression());
 app.use(express.json());
 
+// Baseline security headers. This API serves JSON only, so the set is small:
+// no caching of responses, and a conservative content-type sniffing stance.
+app.use((_req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("Cache-Control", "no-store");
+  next();
+});
+
 // Malformed JSON should be a 400 the client can parse, not an HTML stack page.
 app.use((err, _req, res, next) => {
   if (err.type === "entity.parse.failed") {
