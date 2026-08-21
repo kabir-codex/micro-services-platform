@@ -4,8 +4,11 @@ const http = require("node:http");
 const express = require("express");
 const healthRouter = require("./health");
 
-function withServer(fn) {
+function withServer(fn, { redisClient } = {}) {
   const app = express();
+  if (redisClient !== undefined) {
+    app.set("redisClient", redisClient);
+  }
   app.use(healthRouter);
   const server = app.listen(0);
   const { port } = server.address();
@@ -30,4 +33,15 @@ test("GET /health returns 200 ok", async () => {
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.status, "ok");
   });
+});
+
+// The DB is unreachable in tests, so /ready must report not-ready rather than
+// pretending to be traffic-safe. This is the signal the k8s readiness probe
+// keys off — a false 200 would route live traffic at a broken pod.
+test("GET /ready returns 503 when the database is unreachable", async () => {
+  await withServer(async (port) => {
+    const res = await get(port, "/ready");
+    assert.strictEqual(res.status, 503);
+    assert.strictEqual(res.body.status, "not_ready");
+  }, { redisClient: { isOpen: false } });
 });
