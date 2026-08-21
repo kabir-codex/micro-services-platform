@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+
 import java.util.List;
 
 @RestController
@@ -31,5 +32,15 @@ public class CatalogController {
     @PostMapping("/products")
     public Product createProduct(@Valid @RequestBody Product product) {
         return repository.save(product);
+    }
+
+    @PutMapping("/products/{id}")
+    public Product updateProduct(@PathVariable Long id, @Valid @RequestBody Product product) {
+        Product existing = repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "product not found"));
+        existing.setName(product.getName());
+        existing.setCategory(product.getCategory());
+        existing.setPrice(product.getPrice());
+        return repository.save(existing);
     }
 }

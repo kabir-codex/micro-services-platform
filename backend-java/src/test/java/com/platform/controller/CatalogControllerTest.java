@@ -101,4 +101,43 @@ class CatalogControllerTest {
                                 """))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void updateProductOverwritesFields() throws Exception {
+        Product existing = new Product("Mouse", "Peripherals", 19.99);
+        given(repository.findById(1L)).willReturn(java.util.Optional.of(existing));
+        given(repository.save(org.mockito.ArgumentMatchers.any(Product.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .put("/catalog/products/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Gaming Mouse",
+                                  "category": "Peripherals",
+                                  "price": 49.99
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Gaming Mouse"))
+                .andExpect(jsonPath("$.price").value(49.99));
+    }
+
+    @Test
+    void updateProductReturns404WhenMissing() throws Exception {
+        given(repository.findById(99L)).willReturn(java.util.Optional.empty());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .put("/catalog/products/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Ghost",
+                                  "category": "Misc",
+                                  "price": 1.0
+                                }
+                                """))
+                .andExpect(status().isNotFound());
+    }
 }
