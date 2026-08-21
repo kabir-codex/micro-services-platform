@@ -5,6 +5,7 @@ import com.platform.repository.ProductRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -42,5 +43,14 @@ public class CatalogController {
         existing.setCategory(product.getCategory());
         existing.setPrice(product.getPrice());
         return repository.save(existing);
+    }
+
+    @DeleteMapping("/products/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        if (!repository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "product not found");
+        }
+        repository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

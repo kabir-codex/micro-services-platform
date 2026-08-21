@@ -140,4 +140,24 @@ class CatalogControllerTest {
                                 """))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void deleteProductReturns204() throws Exception {
+        given(repository.existsById(1L)).willReturn(true);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .delete("/catalog/products/1"))
+                .andExpect(status().isNoContent());
+
+        org.mockito.Mockito.verify(repository).deleteById(1L);
+    }
+
+    @Test
+    void deleteProductReturns404WhenMissing() throws Exception {
+        given(repository.existsById(99L)).willReturn(false);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .delete("/catalog/products/99"))
+                .andExpect(status().isNotFound());
+    }
 }
