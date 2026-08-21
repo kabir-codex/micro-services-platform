@@ -1,0 +1,35 @@
+# Platform service alerts, loaded by kube-prometheus-stack's ruleSelector
+# (PrometheusRule objects are picked up automatically in the monitoring ns).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: platform-service-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: platform-services
+      rules:
+        # Sustained 5xx rate on either backend for more than a couple of
+        # minutes means users are seeing errors right now.
+        - alert: PlatformServiceHighErrorRate
+          expr: |
+            sum by (service) (rate(http_requests_total{status_code=~"5.."}[5m]))
+              / sum by (service) (rate(http_requests_total[5m])) > 0.05
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.service }} is returning >5% 5xx responses"
+            description: "5xx ratio over the last 5 minutes exceeded 5% for 2 minutes."
+        # A pod that keeps flipping readiness is worse than one that is
+        # steadily down — it receives traffic in bursts and drops it.
+        - alert: PlatformServiceReadinessFlapping
+          expr: changes(kube_pod_status_ready{namespace="platform", condition="true"}[10m]) > 4
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod {{ $labels.pod }} readiness is flapping"
+            description: "Readiness changed state more than 4 times in 10 minutes."
