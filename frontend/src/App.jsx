@@ -8,17 +8,27 @@ function useHealth(url) {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`${url}/health`, { signal: controller.signal })
-      .then((r) => {
-        if (!controller.signal.aborted) {
-          setStatus(r.ok ? "healthy" : `unhealthy (${r.status})`);
-        }
-      })
-      .catch((err) => {
-        if (err.name === "AbortError") return;
-        if (!controller.signal.aborted) setStatus("unreachable");
-      });
-    return () => controller.abort();
+
+    const check = () =>
+      fetch(`${url}/health`, { signal: controller.signal })
+        .then((r) => {
+          if (!controller.signal.aborted) {
+            setStatus(r.ok ? "healthy" : `unhealthy (${r.status})`);
+          }
+        })
+        .catch((err) => {
+          if (err.name === "AbortError") return;
+          if (!controller.signal.aborted) setStatus("unreachable");
+        });
+
+    check();
+    // Re-check periodically so the dashboard recovers its display without a
+    // manual reload after a backend restarts.
+    const interval = setInterval(check, 30_000);
+    return () => {
+      controller.abort();
+      clearInterval(interval);
+    };
   }, [url]);
 
   return status;
