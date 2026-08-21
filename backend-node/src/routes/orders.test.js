@@ -121,3 +121,30 @@ test("POST /orders creates an order when the DB is unreachable (in-memory fallba
     assert.strictEqual(res.body.status, "processing");
   });
 });
+
+test("DELETE /orders/:id removes an order from the in-memory fallback", async () => {
+  await withServer(async (port) => {
+    const created = await request(port, "POST", "/orders", { item: "Webcam", quantity: 1 });
+    const id = created.body.id;
+
+    const deleted = await request(port, "DELETE", `/orders/${id}`);
+    assert.strictEqual(deleted.status, 204);
+
+    const gone = await request(port, "GET", `/orders/${id}`);
+    assert.strictEqual(gone.status, 404);
+  });
+});
+
+test("DELETE /orders/:id returns 404 for an unknown id", async () => {
+  await withServer(async (port) => {
+    const res = await request(port, "DELETE", "/orders/9999");
+    assert.strictEqual(res.status, 404);
+  });
+});
+
+test("DELETE /orders/:id rejects a non-numeric id", async () => {
+  await withServer(async (port) => {
+    const res = await request(port, "DELETE", "/orders/abc");
+    assert.strictEqual(res.status, 400);
+  });
+});
