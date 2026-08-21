@@ -93,7 +93,9 @@ class CatalogControllerTest {
                                   "price": 5.0
                                 }
                                 """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("name"))
+                .andExpect(jsonPath("$.errors[0].message").value("name must not be blank"));
 
         // The invalid payload must never reach the repository.
         org.mockito.Mockito.verifyNoInteractions(repository);
