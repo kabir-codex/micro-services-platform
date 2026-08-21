@@ -13,7 +13,7 @@ COPY . .
 RUN npm run build
 
 # ---- runtime stage ----
-FROM nginx:1.27-alpine
+FROM nginx:1.30-alpine
 RUN adduser -D -H -u 10001 appuser \
   && chown -R appuser:appuser /var/cache/nginx /var/run /var/log/nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
