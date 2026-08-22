@@ -1,6 +1,8 @@
 node_modules/
 dist/
 target/
+coverage/
+.nyc_output/
 *.log
 .env
 k8s/postgres/secret.yaml
