@@ -33,3 +33,14 @@ spec:
           annotations:
             summary: "Pod {{ $labels.pod }} readiness is flapping"
             description: "Readiness changed state more than 4 times in 10 minutes."
+        # The complement of the flapping alert: a pod that has been steadily
+        # not-ready for a while (dependency outage, bad config) with no flip
+        # in sight. This is the one that means capacity is silently reduced.
+        - alert: PlatformServicePodNotReady
+          expr: kube_pod_status_ready{namespace="platform", condition="false"} == 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod {{ $labels.pod }} has been not-ready for 10 minutes"
+            description: "The pod failed its readiness probe continuously for 10 minutes; it is receiving no traffic."
