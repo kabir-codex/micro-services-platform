@@ -43,9 +43,10 @@ language-agnostic.
 | GET | `/` | Service metadata + endpoint list |
 | GET | `/health` | Liveness (no dependency checks) |
 | GET | `/ready` | Readiness — 503 unless Postgres + Redis respond |
-| GET | `/orders` | List orders; optional `?status=` filter |
+| GET | `/orders` | List orders; optional `?status=`, `?limit=`, `?offset=` |
 | GET | `/orders/:id` | Fetch one order; 404 when missing |
-| POST | `/orders` | Create; validates item + quantity |
+| POST | `/orders` | Create; validates item + quantity; honors `Idempotency-Key` |
+| PATCH | `/orders/:id/status` | Lifecycle transition (`processing → shipped → delivered`, or cancel); 409 on invalid moves |
 | DELETE | `/orders/:id` | Remove; 204 on success |
 | GET | `/metrics` | Prometheus scrape (never self-instrumented) |
 
@@ -53,9 +54,11 @@ language-agnostic.
 
 | Method | Path | Notes |
 |---|---|---|
+| GET | `/catalog` | Service metadata + endpoint list |
 | GET | `/health` | Plain health check |
 | GET | `/actuator/health` | Spring Boot health (used by probes) |
 | GET | `/catalog/products` | List products; optional `?category=` filter |
+| GET | `/catalog/products/count` | Aggregate count; optional `?category=` |
 | GET | `/catalog/products/{id}` | Fetch one product; 404 when missing |
 | POST | `/catalog/products` | Create; bean-validated, field-level error JSON |
 | PUT | `/catalog/products/{id}` | Update; bean-validated |
