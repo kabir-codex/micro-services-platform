@@ -1,0 +1,12 @@
+# Same rationale as the redis PDB: postgres is a single-replica StatefulSet,
+# so voluntary disruptions must not evict it while it is the only copy.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: postgres
+  namespace: platform
+spec:
+  maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: postgres
