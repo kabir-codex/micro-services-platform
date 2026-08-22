@@ -30,6 +30,14 @@ class CatalogControllerTest {
     private ProductRepository repository;
 
     @Test
+    void landingExposesServiceMetadata() throws Exception {
+        mockMvc.perform(get("/catalog"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.service").value("catalog-api"))
+                .andExpect(jsonPath("$.endpoints.length()").value(8));
+    }
+
+    @Test
     void listProductsReturnsAll() throws Exception {
         given(repository.findAll()).willReturn(List.of(new Product("Mouse", "Peripherals", 19.99)));
 

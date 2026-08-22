@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/catalog")
@@ -18,6 +19,22 @@ public class CatalogController {
 
     @Autowired
     private ProductRepository repository;
+
+    // Landing metadata for the catalog API, mirroring the orders service.
+    @GetMapping
+    public Map<String, Object> landing() {
+        return Map.of(
+                "service", "catalog-api",
+                "endpoints", List.of(
+                        "/health",
+                        "/actuator/health",
+                        "GET /catalog/products[?category=]",
+                        "GET /catalog/products/{id}",
+                        "POST /catalog/products",
+                        "PUT /catalog/products/{id}",
+                        "DELETE /catalog/products/{id}",
+                        "/actuator/prometheus"));
+    }
 
     @GetMapping("/products")
     public List<Product> listProducts(@RequestParam(required = false) String category) {
