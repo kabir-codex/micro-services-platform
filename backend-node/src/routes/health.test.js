@@ -30,11 +30,12 @@ function get(port, path) {
   });
 }
 
-test("GET /health returns 200 ok", async () => {
+test("GET /health returns 200 ok with the package version", async () => {
   await withServer(async (port) => {
     const res = await get(port, "/health");
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.status, "ok");
+    assert.strictEqual(res.body.version, require("../../package.json").version);
   });
 });
 
