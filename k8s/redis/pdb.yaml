@@ -1,0 +1,13 @@
+# Redis runs as a single replica; the PDB documents that voluntary
+# disruptions (drains, upgrades) should not evict it while it is the only
+# copy. With maxUnavailable: 0 a drain waits until a replacement exists.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: redis
+  namespace: platform
+spec:
+  maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: redis
