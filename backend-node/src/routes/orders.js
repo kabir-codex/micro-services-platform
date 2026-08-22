@@ -15,9 +15,9 @@ router.get("/", (_req, res) => {
     endpoints: [
       "/health",
       "/ready",
-      "GET /orders[?status=]",
+      "GET /orders[?status=&limit=&offset=]",
       "GET /orders/:id",
-      "POST /orders",
+      "POST /orders (honors Idempotency-Key)",
       "DELETE /orders/:id",
       "/metrics",
     ],
