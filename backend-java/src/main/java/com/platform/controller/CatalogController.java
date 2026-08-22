@@ -44,6 +44,14 @@ public class CatalogController {
         return repository.findAll();
     }
 
+    @GetMapping("/products/count")
+    public Map<String, Long> countProducts(@RequestParam(required = false) String category) {
+        long count = (category != null && !category.isBlank())
+                ? repository.findByCategoryIgnoreCase(category).size()
+                : repository.count();
+        return Map.of("count", count);
+    }
+
     @GetMapping("/products/{id}")
     public Product getProduct(@PathVariable Long id) {
         return repository.findById(id)

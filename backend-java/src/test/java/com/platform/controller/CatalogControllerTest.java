@@ -59,6 +59,15 @@ class CatalogControllerTest {
     }
 
     @Test
+    void countProductsReturnsTheTotal() throws Exception {
+        given(repository.count()).willReturn(42L);
+
+        mockMvc.perform(get("/catalog/products/count"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.count").value(42));
+    }
+
+    @Test
     void getProductReturnsItWhenFound() throws Exception {
         given(repository.findById(1L)).willReturn(java.util.Optional.of(new Product("Monitor", "Displays", 249.00)));
 
