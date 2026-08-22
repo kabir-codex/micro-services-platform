@@ -106,6 +106,17 @@ In Kubernetes the frontend discovers its backends through the ingress
 backend-java); the Docker Compose path uses the `VITE_*` build-time env vars
 below instead.
 
+## Everyday commands
+
+The `Makefile` wraps the common workflows:
+
+```bash
+make test     # all three test suites (node, java, frontend)
+make lint     # all linters
+make up       # docker compose dev environment
+make seed     # seed the local database (localhost only)
+```
+
 ## Frontend → backend URLs
 
 The Vite frontend resolves its APIs at build time. Locally (no cluster), pass
