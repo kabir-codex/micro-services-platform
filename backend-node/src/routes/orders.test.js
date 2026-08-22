@@ -216,3 +216,37 @@ test("DELETE /orders/:id rejects a non-numeric id", async () => {
     assert.strictEqual(res.status, 400);
   });
 });
+
+test("PATCH /orders/:id/status advances an order through its lifecycle", async () => {
+  await withServer(async (port) => {
+    const created = await request(port, "POST", "/orders", { item: "Desk Lamp", quantity: 1 });
+    const id = created.body.id;
+
+    // processing -> shipped -> delivered is the happy path.
+    const shipped = await request(port, "PATCH", `/orders/${id}/status`, { status: "shipped" });
+    assert.strictEqual(shipped.status, 200);
+    assert.strictEqual(shipped.body.status, "shipped");
+
+    const delivered = await request(port, "PATCH", `/orders/${id}/status`, { status: "delivered" });
+    assert.strictEqual(delivered.status, 200);
+    assert.strictEqual(delivered.body.status, "delivered");
+
+    // delivered is terminal.
+    const stuck = await request(port, "PATCH", `/orders/${id}/status`, { status: "processing" });
+    assert.strictEqual(stuck.status, 409);
+  });
+});
+
+test("PATCH /orders/:id/status rejects invalid transitions and unknown statuses", async () => {
+  await withServer(async (port) => {
+    const created = await request(port, "POST", "/orders", { item: "Mug", quantity: 1 });
+    const id = created.body.id;
+
+    // processing -> delivered skips a state.
+    const skip = await request(port, "PATCH", `/orders/${id}/status`, { status: "delivered" });
+    assert.strictEqual(skip.status, 409);
+
+    const bogus = await request(port, "PATCH", `/orders/${id}/status`, { status: "teleported" });
+    assert.strictEqual(bogus.status, 400);
+  });
+});

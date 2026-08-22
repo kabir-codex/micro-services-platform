@@ -98,6 +98,49 @@ router.delete("/orders/:id", async (req, res) => {
   }
 });
 
+// The valid order lifecycle; transitions must follow it.
+const TRANSITIONS = {
+  processing: ["shipped", "cancelled"],
+  shipped: ["delivered"],
+  delivered: [],
+  cancelled: [],
+};
+
+router.patch("/orders/:id/status", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: "id must be a positive integer" });
+  }
+  const { status } = req.body || {};
+  if (!["processing", "shipped", "delivered", "cancelled"].includes(status)) {
+    return res.status(400).json({ error: "unknown status" });
+  }
+  try {
+    const current = await query("SELECT status FROM orders WHERE id = $1", [id]);
+    if (current.rows.length === 0) {
+      return res.status(404).json({ error: "order not found" });
+    }
+    if (!TRANSITIONS[current.rows[0].status]?.includes(status)) {
+      return res.status(409).json({ error: `cannot transition from ${current.rows[0].status} to ${status}` });
+    }
+    const updated = await query(
+      "UPDATE orders SET status = $1 WHERE id = $2 RETURNING id, item, quantity, status",
+      [status, id]
+    );
+    return res.json(updated.rows[0]);
+  } catch {
+    const order = memoryOrders.find((o) => o.id === id);
+    if (!order) {
+      return res.status(404).json({ error: "order not found" });
+    }
+    if (!TRANSITIONS[order.status]?.includes(status)) {
+      return res.status(409).json({ error: `cannot transition from ${order.status} to ${status}` });
+    }
+    order.status = status;
+    return res.json(order);
+  }
+});
+
 router.post("/orders", async (req, res) => {
   const { item, quantity } = req.body || {};
 
