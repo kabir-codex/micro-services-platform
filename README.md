@@ -143,6 +143,8 @@ what the compose file already sets.
   check.
 - **Observability** — Prometheus scrapes app + cluster metrics, Grafana
   dashboards visualize them, Loki aggregates logs from every pod.
+  Alert rules live in `monitoring/platform-alerts.yaml`: a warning fires on
+  >5% 5xx responses (2m) and on readiness flapping (>4 changes in 10m).
 - **Security basics** — TLS via cert-manager, secrets kept out of git
   (see `k8s/postgres/secret.example.yaml`), non-root containers, resource
   limits.
