@@ -4,24 +4,33 @@ const http = require("node:http");
 const express = require("express");
 const ordersRouter = require("./orders");
 
-function withServer(fn) {
+function withServer(fn, { redisClient } = {}) {
   const app = express();
   app.use(express.json());
+  if (redisClient !== undefined) {
+    app.set("redisClient", redisClient);
+  }
   app.use(ordersRouter);
   const server = app.listen(0);
   const { port } = server.address();
   return fn(port).finally(() => server.close());
 }
 
-function request(port, method, path, body) {
+function request(port, method, path, body, extraHeaders = {}) {
   return new Promise((resolve, reject) => {
     const payload = body === undefined ? null : JSON.stringify(body);
+    const headers = { ...extraHeaders };
+    if (payload) headers["Content-Type"] = "application/json";
     const req = http.request(
-      { hostname: "127.0.0.1", port, method, path, headers: payload ? { "Content-Type": "application/json" } : {} },
+      { hostname: "127.0.0.1", port, method, path, headers },
       (res) => {
         let data = "";
         res.on("data", (c) => (data += c));
-        res.on("end", () => resolve({ status: res.statusCode, body: data ? JSON.parse(data) : null }));
+        res.on("end", () => resolve({
+          status: res.statusCode,
+          headers: res.headers,
+          body: data ? JSON.parse(data) : null,
+        }));
       }
     );
     req.on("error", reject);
@@ -121,6 +130,42 @@ test("POST /orders creates an order when the DB is unreachable (in-memory fallba
     assert.strictEqual(res.body.quantity, 3);
     assert.strictEqual(res.body.status, "processing");
   });
+});
+
+test("POST /orders replays the original response for a retried Idempotency-Key", async () => {
+  // Minimal fake of the redis client surface the route uses.
+  const store = new Map();
+  const redisClient = {
+    isOpen: true,
+    get: async (k) => store.get(k),
+    set: async (k, v) => store.set(k, v),
+  };
+  await withServer(async (port) => {
+    const first = await request(
+      port, "POST", "/orders",
+      { item: "USB Cable", quantity: 2 },
+      { "Idempotency-Key": "retry-1" }
+    );
+    assert.strictEqual(first.status, 201);
+
+    const retry = await request(
+      port, "POST", "/orders",
+      { item: "USB Cable", quantity: 2 },
+      { "Idempotency-Key": "retry-1" }
+    );
+    assert.strictEqual(retry.status, 200);
+    assert.strictEqual(retry.headers["idempotency-replayed"], "true");
+    assert.deepStrictEqual(retry.body, first.body);
+
+    // A different key must create a fresh order.
+    const fresh = await request(
+      port, "POST", "/orders",
+      { item: "USB Cable", quantity: 2 },
+      { "Idempotency-Key": "retry-2" }
+    );
+    assert.strictEqual(fresh.status, 201);
+    assert.notStrictEqual(fresh.body.id, first.body.id);
+  }, { redisClient });
 });
 
 test("DELETE /orders/:id removes an order from the in-memory fallback", async () => {

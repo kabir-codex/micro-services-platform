@@ -86,6 +86,24 @@ router.delete("/orders/:id", async (req, res) => {
 
 router.post("/orders", async (req, res) => {
   const { item, quantity } = req.body || {};
+
+  // Idempotency: a client retrying with the same Idempotency-Key gets the
+  // original response replayed instead of a duplicate order. The key lives
+  // in Redis for 24h; without Redis (or a key) behavior is unchanged.
+  const redisClient = req.app.get("redisClient");
+  const idempotencyKey = req.get("Idempotency-Key");
+  let replayed;
+  if (redisClient?.isOpen && typeof idempotencyKey === "string" && idempotencyKey.trim()) {
+    try {
+      replayed = await redisClient.get(`idempotency:${idempotencyKey}`);
+    } catch {
+      replayed = undefined; // Redis down: treat as no key rather than fail the write.
+    }
+    if (replayed) {
+      return res.set("Idempotency-Replayed", "true").status(200).json(JSON.parse(replayed));
+    }
+  }
+
   if (typeof item !== "string" || !item.trim()) {
     return res.status(400).json({ error: "item must be a non-empty string" });
   }
@@ -98,10 +116,20 @@ router.post("/orders", async (req, res) => {
       "INSERT INTO orders (item, quantity, status) VALUES ($1, $2, 'processing') RETURNING id, item, quantity, status",
       [item, parsedQuantity]
     );
+    if (redisClient?.isOpen && idempotencyKey) {
+      redisClient
+        .set(`idempotency:${idempotencyKey}`, JSON.stringify(result.rows[0]), { EX: 86_400 })
+        .catch(() => {});
+    }
     return res.status(201).json(result.rows[0]);
   } catch {
     const newOrder = { id: memoryOrders.length + 1, item, quantity: parsedQuantity, status: "processing" };
     memoryOrders.push(newOrder);
+    if (redisClient?.isOpen && idempotencyKey) {
+      redisClient
+        .set(`idempotency:${idempotencyKey}`, JSON.stringify(newOrder), { EX: 86_400 })
+        .catch(() => {});
+    }
     return res.status(201).json(newOrder);
   }
 });
