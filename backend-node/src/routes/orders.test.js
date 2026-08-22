@@ -98,6 +98,28 @@ test("GET /orders rejects an unknown status filter", async () => {
   });
 });
 
+test("GET /orders paginates the in-memory fallback with limit and offset", async () => {
+  await withServer(async (port) => {
+    const page = await request(port, "GET", "/orders?limit=1&offset=1");
+    assert.strictEqual(page.status, 200);
+    assert.strictEqual(page.body.length, 1);
+
+    const all = await request(port, "GET", "/orders");
+    assert.deepStrictEqual(page.body[0], all.body[1]);
+  });
+});
+
+test("GET /orders rejects non-integer pagination params", async () => {
+  await withServer(async (port) => {
+    const res = await request(port, "GET", "/orders?limit=abc");
+    assert.strictEqual(res.status, 400);
+    assert.match(res.body.error, /limit/);
+
+    const negOffset = await request(port, "GET", "/orders?offset=-1");
+    assert.strictEqual(negOffset.status, 400);
+  });
+});
+
 test("POST /orders rejects a missing quantity", async () => {
   await withServer(async (port) => {
     const res = await request(port, "POST", "/orders", { item: "Headphones" });

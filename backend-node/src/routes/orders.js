@@ -30,15 +30,29 @@ router.get("/orders", async (req, res) => {
   if (status !== undefined && !["processing", "shipped", "delivered", "cancelled"].includes(status)) {
     return res.status(400).json({ error: "unknown status filter" });
   }
+
+  // Optional pagination. Defaults keep the response identical to the
+  // unpaginated shape; clients opt in with ?limit= and ?offset=.
+  const limit = req.query.limit === undefined ? undefined : Number(req.query.limit);
+  const offset = req.query.offset === undefined ? undefined : Number(req.query.offset);
+  const invalidPagination =
+    (limit !== undefined && (!Number.isInteger(limit) || limit <= 0)) ||
+    (offset !== undefined && (!Number.isInteger(offset) || offset < 0));
+  if (invalidPagination) {
+    return res.status(400).json({ error: "limit must be a positive integer and offset a non-negative integer" });
+  }
+
   try {
     const result = await query(
-      "SELECT id, item, quantity, status FROM orders WHERE ($1::text IS NULL OR status = $1) ORDER BY id",
-      [status ?? null]
+      "SELECT id, item, quantity, status FROM orders WHERE ($1::text IS NULL OR status = $1) ORDER BY id LIMIT $2 OFFSET $3",
+      [status ?? null, limit ?? null, offset ?? 0]
     );
     res.json(result.rows);
   } catch {
     // Table may not exist yet in a fresh demo environment.
-    const rows = status ? memoryOrders.filter((o) => o.status === status) : memoryOrders;
+    let rows = status ? memoryOrders.filter((o) => o.status === status) : memoryOrders;
+    if (offset !== undefined) rows = rows.slice(offset);
+    if (limit !== undefined) rows = rows.slice(0, limit);
     res.json(rows);
   }
 });
