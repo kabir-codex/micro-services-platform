@@ -34,7 +34,7 @@ class CatalogControllerTest {
         mockMvc.perform(get("/catalog"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.service").value("catalog-api"))
-                .andExpect(jsonPath("$.endpoints.length()").value(8));
+                .andExpect(jsonPath("$.endpoints.length()").value(9));
     }
 
     @Test

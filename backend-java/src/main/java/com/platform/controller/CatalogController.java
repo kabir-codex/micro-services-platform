@@ -29,6 +29,7 @@ public class CatalogController {
                         "/health",
                         "/actuator/health",
                         "GET /catalog/products[?category=]",
+                        "GET /catalog/products/count",
                         "GET /catalog/products/{id}",
                         "POST /catalog/products",
                         "PUT /catalog/products/{id}",
