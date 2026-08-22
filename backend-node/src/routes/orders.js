@@ -18,6 +18,7 @@ router.get("/", (_req, res) => {
       "GET /orders[?status=&limit=&offset=]",
       "GET /orders/:id",
       "POST /orders (honors Idempotency-Key)",
+      "PATCH /orders/:id/status",
       "DELETE /orders/:id",
       "/metrics",
     ],
