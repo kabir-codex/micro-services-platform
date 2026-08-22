@@ -13,6 +13,13 @@ spec:
       labels:
         app: redis
     spec:
+      securityContext:
+        runAsNonRoot: true
+        # redis:7-alpine ships its redis user as uid 999 (gid 1000 — alpine
+        # already reserves gid 999); pinning keeps volume ownership stable.
+        runAsUser: 999
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
         - name: redis
           image: redis:7-alpine
