@@ -1,9 +1,9 @@
-FROM node:24-alpine AS base
+FROM node:26-alpine AS base
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-FROM node:24-alpine
+FROM node:26-alpine
 WORKDIR /app
 RUN apk upgrade --no-cache \
   && rm -rf /usr/local/lib/node_modules/npm \
