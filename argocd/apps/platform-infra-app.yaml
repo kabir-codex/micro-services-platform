@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/kabir-devs/microservices-platform.git
+    repoURL: https://github.com/kabir-codex/micro-services-platform.git
     targetRevision: main
     path: k8s
     directory:

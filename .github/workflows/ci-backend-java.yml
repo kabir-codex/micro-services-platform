@@ -63,8 +63,8 @@ jobs:
       - name: Bump image tag in Helm values (GitOps trigger)
         run: |
           python3 .github/scripts/bump-image-tag.py helm/backend-java/values.yaml "${GITHUB_SHA}"
-          git config user.name "kabir-devs"
-          git config user.email "kabir-devs@users.noreply.github.com"
+          git config user.name "kabir-codex"
+          git config user.email "kabir-codex@users.noreply.github.com"
           git commit -am "ci: bump backend-java image to ${GITHUB_SHA}" || echo "no changes"
           for attempt in 1 2 3 4 5; do
             git pull --rebase origin main
