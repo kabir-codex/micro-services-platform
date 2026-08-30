@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: ghcr.io/kabir-codex/micro-services-platform/backend-java
-  tag: "79b7df21b75ce2ec8247f076184817616c14f58d"
+  tag: "af1e1c4bcefc11577bbdbd08b09550d34b5edf6a"
   pullPolicy: IfNotPresent
 
 service:
