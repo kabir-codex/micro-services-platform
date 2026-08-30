@@ -7,7 +7,7 @@ COPY src ./src
 RUN mvn -B package -DskipTests
 
 # ---- runtime stage ----
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 RUN apk upgrade --no-cache \
   && addgroup -S app \
