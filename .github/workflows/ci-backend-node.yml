@@ -52,7 +52,7 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=sha,format=short
+            type=raw,value=${{ github.sha }}
             type=raw,value=latest
       - uses: docker/build-push-action@v5
         with:
@@ -64,27 +64,15 @@ jobs:
 
       - name: Bump image tag in Helm values (GitOps trigger)
         run: |
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          python3 - <<'PY' "$SHORT_SHA"
-import re, pathlib, sys
-values = pathlib.Path("helm/backend-node/values.yaml")
-lines = values.read_text().splitlines(True)
-new_tag = sys.argv[1]
-in_image = False
-for i, ln in enumerate(lines):
-    if re.match(r"^image:\s*$", ln):
-        in_image = True
-    elif in_image and ln.strip() and not ln.startswith(" "):
-        in_image = False
-    if in_image and re.match(r"^\s+tag:", ln):
-        lines[i] = re.sub(r"^(\s*tag:).*$", lambda m: m.group(1) + ' "' + new_tag + '"', ln)
-values.write_text("".join(lines))
-print(f"bumped image tag to {new_tag}")
-PY
+          python3 .github/scripts/bump-image-tag.py helm/backend-node/values.yaml "${GITHUB_SHA}"
           git config user.name "kabir-devs"
           git config user.email "kabir-devs@users.noreply.github.com"
-          git commit -am "ci: bump backend-node image to ${SHORT_SHA}" || echo "no changes"
-          git push
+          git commit -am "ci: bump backend-node image to ${GITHUB_SHA}" || echo "no changes"
+          for attempt in 1 2 3 4 5; do
+            git pull --rebase origin main
+            git push && break
+            if [ "$attempt" -eq 5 ]; then exit 1; fi
+          done
 
   scan:
     needs: build-and-push
