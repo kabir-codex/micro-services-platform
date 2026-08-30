@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: ghcr.io/kabir-codex/micro-services-platform/frontend
-  tag: "cb5148bfeaffbe74d17a4b1c066050bbaf389eba"
+  tag: "af1e1c4bcefc11577bbdbd08b09550d34b5edf6a"
   pullPolicy: IfNotPresent
 
 service:
