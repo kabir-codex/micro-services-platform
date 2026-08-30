@@ -1,7 +1,7 @@
 # ---- build stage ----
 # The backend URLs are inlined at build time via the VITE_* args so the
 # dashboard reaches the right APIs from the cluster.
-FROM node:20-alpine AS build
+FROM node:24-alpine AS build
 ARG VITE_ORDERS_API_URL=http://localhost:4000
 ARG VITE_CATALOG_API_URL=http://localhost:8080
 ENV VITE_ORDERS_API_URL=$VITE_ORDERS_API_URL \
@@ -13,8 +13,9 @@ COPY . .
 RUN npm run build
 
 # ---- runtime stage ----
-FROM nginx:1.27-alpine
-RUN adduser -D -H -u 10001 appuser \
+FROM nginx:1.31-alpine
+RUN apk upgrade --no-cache \
+  && adduser -D -H -u 10001 appuser \
   && chown -R appuser:appuser /var/cache/nginx /var/run /var/log/nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html

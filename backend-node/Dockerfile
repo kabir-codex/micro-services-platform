@@ -1,11 +1,15 @@
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-FROM node:20-alpine
+FROM node:24-alpine
 WORKDIR /app
-RUN addgroup -S app && adduser -S app -G app
+RUN apk upgrade --no-cache \
+  && rm -rf /usr/local/lib/node_modules/npm \
+  && rm -f /usr/local/bin/npm /usr/local/bin/npx \
+  && addgroup -S app \
+  && adduser -S app -G app
 COPY --from=base /app/node_modules ./node_modules
 COPY package*.json ./
 COPY src ./src

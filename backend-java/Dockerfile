@@ -9,7 +9,9 @@ RUN mvn -B package -DskipTests
 # ---- runtime stage ----
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-RUN addgroup -S app && adduser -S app -G app
+RUN apk upgrade --no-cache \
+  && addgroup -S app \
+  && adduser -S app -G app
 COPY --from=build /app/target/*.jar app.jar
 USER app
 EXPOSE 8080
